@@ -1,0 +1,200 @@
+<!-- templates/payments/payment_detail.html -->
+{% extends 'payments/base.html' %}
+
+{% block title %}Detalhes do Pagamento #{{ payment.id }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>🔍 Detalhes do Pagamento #{{ payment.id }}</h2>
+    <p>Informações completas sobre esta transação de teste.</p>
+</div>
+
+<!-- Payment Status Overview -->
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+        <div>
+            <h3>{{ payment.product.name }}</h3>
+            <p style="color: #666; margin: 5px 0;">Criado em {{ payment.created_at|date:"d/m/Y H:i:s" }}</p>
+        </div>
+        <div style="text-align: right;">
+            <div style="font-size: 1.5em; font-weight: bold; color: #6772e5; margin-bottom: 10px;">
+                R$ {{ payment.amount|floatformat:2 }}
+            </div>
+            <span class="status-badge status-{{ payment.status }}">
+                {{ payment.get_status_display }}
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Information -->
+<div class="card">
+    <h3>📋 Informações do Pagamento</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px;">
+        <div>
+            <strong>ID do Pagamento:</strong><br>
+            <code>#{{ payment.id }}</code>
+        </div>
+        <div>
+            <strong>Produto:</strong><br>
+            {{ payment.product.name }}
+        </div>
+        <div>
+            <strong>Usuário:</strong><br>
+            {{ payment.user.username }}
+        </div>
+        <div>
+            <strong>Valor:</strong><br>
+            R$ {{ payment.amount|floatformat:2 }} {{ payment.currency|upper }}
+        </div>
+        <div>
+            <strong>Método de Pagamento:</strong><br>
+            {% if payment.payment_method_type == 'card' %}💳 Cartão
+            {% elif payment.payment_method_type == 'pix' %}🏦 PIX
+            {% elif payment.payment_method_type == 'boleto' %}📄 Boleto
+            {% else %}{{ payment.get_payment_method_type_display }}{% endif %}
+        </div>
+        <div>
+            <strong>Status:</strong><br>
+            <span class="status-badge status-{{ payment.status }}">
+                {{ payment.get_status_display }}
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Stripe Information -->
+<div class="card">
+    <h3>🔗 Informações Stripe</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
+        <div>
+            <strong>Payment Intent ID:</strong><br>
+            <code style="font-size: 0.9em;">{{ payment.stripe_payment_intent_id }}</code>
+        </div>
+        <div>
+            <strong>Customer ID:</strong><br>
+            <code style="font-size: 0.9em;">{{ payment.stripe_customer_id|default:"Não informado" }}</code>
+        </div>
+        {% if payment.stripe_fee %}
+        <div>
+            <strong>Taxa Stripe:</strong><br>
+            R$ {{ payment.stripe_fee|floatformat:2 }}
+        </div>
+        {% endif %}
+        {% if payment.net_amount %}
+        <div>
+            <strong>Valor Líquido:</strong><br>
+            R$ {{ payment.net_amount|floatformat:2 }}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Timestamps -->
+<div class="card">
+    <h3>⏰ Timeline</h3>
+    <div style="margin-top: 20px;">
+        <div style="border-left: 3px solid #6772e5; padding-left: 20px; margin-bottom: 15px;">
+            <strong>Criado:</strong> {{ payment.created_at|date:"d/m/Y H:i:s" }}
+        </div>
+        <div style="border-left: 3px solid #ffc107; padding-left: 20px; margin-bottom: 15px;">
+            <strong>Última Atualização:</strong> {{ payment.updated_at|date:"d/m/Y H:i:s" }}
+        </div>
+        {% if payment.paid_at %}
+        <div style="border-left: 3px solid #28a745; padding-left: 20px; margin-bottom: 15px;">
+            <strong>Pago em:</strong> {{ payment.paid_at|date:"d/m/Y H:i:s" }}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Stripe Data (if available) -->
+{% if stripe_data %}
+<div class="card">
+    <h3>📊 Dados Stripe (Tempo Real)</h3>
+    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-top: 15px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            <div>
+                <strong>Status Atual:</strong><br>
+                <code>{{ stripe_data.status }}</code>
+            </div>
+            <div>
+                <strong>Valor:</strong><br>
+                <code>{{ stripe_data.amount }} centavos</code>
+            </div>
+            <div>
+                <strong>Moeda:</strong><br>
+                <code>{{ stripe_data.currency|upper }}</code>
+            </div>
+            <div>
+                <strong>Método:</strong><br>
+                <code>{{ stripe_data.payment_method_types|join:", " }}</code>
+            </div>
+        </div>
+        
+        {% if stripe_data.charges.data %}
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e1e5e9;">
+            <h4>💳 Charges:</h4>
+            {% for charge in stripe_data.charges.data %}
+            <div style="margin-top: 10px; padding: 10px; background: white; border-radius: 4px;">
+                <strong>ID:</strong> <code>{{ charge.id }}</code><br>
+                <strong>Status:</strong> <code>{{ charge.status }}</code><br>
+                <strong>Valor:</strong> <code>{{ charge.amount }} centavos</code>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Actions -->
+<div class="card">
+    <h3>🔧 Ações</h3>
+    <div style="margin-top: 20px;">
+        <a href="{% url 'payments:payment_history' %}" class="btn btn-secondary" style="margin-right: 10px;">
+            📊 Voltar ao Histórico
+        </a>
+        <a href="{% url 'payments:index' %}" class="btn btn-primary" style="margin-right: 10px;">
+            🏠 Voltar à Loja
+        </a>
+        {% if user.is_staff %}
+        <a href="{% url 'admin:payments_payment_change' payment.id %}" class="btn btn-secondary" target="_blank">
+            ⚙️ Editar no Admin
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Debug Info (apenas em desenvolvimento) -->
+{% if debug %}
+<div class="card">
+    <h3>🐛 Debug Info</h3>
+    <div style="background: #1a1a1a; color: #00ff00; padding: 20px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 12px;">
+        <div><strong>Payment ID:</strong> {{ payment.id }}</div>
+        <div><strong>Stripe Intent:</strong> {{ payment.stripe_payment_intent_id }}</div>
+        <div><strong>User:</strong> {{ payment.user.username }} (ID: {{ payment.user.id }})</div>
+        <div><strong>Product:</strong> {{ payment.product.name }} (ID: {{ payment.product.id }})</div>
+        <div><strong>Created:</strong> {{ payment.created_at|date:"c" }}</div>
+        <div><strong>Updated:</strong> {{ payment.updated_at|date:"c" }}</div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.status-pending { background: #fff3cd; color: #856404; }
+.status-processing { background: #d1ecf1; color: #0c5460; }
+.status-succeeded { background: #d4edda; color: #155724; }
+.status-failed { background: #f8d7da; color: #721c24; }
+.status-canceled { background: #e2e3e5; color: #6c757d; }
+.status-requires_action { background: #ffeaa7; color: #856404; }
+</style>
+{% endblock %}

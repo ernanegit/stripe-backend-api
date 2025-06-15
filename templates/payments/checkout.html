@@ -20,13 +20,15 @@
     <div style="margin-bottom: 30px;">
         <h4>Escolha o método de pagamento:</h4>
         <div style="margin-top: 15px;">
-            <label style="display: block; margin-bottom: 10px; cursor: pointer;">
+            <label style="display: block; margin-bottom: 10px; cursor: pointer; padding: 15px; border: 2px solid #e1e5e9; border-radius: 8px;" class="payment-method-option">
                 <input type="radio" name="payment_method" value="card" checked style="margin-right: 10px;">
-                💳 Cartão de Crédito/Débito
+                <strong>💳 Cartão de Crédito/Débito</strong>
+                <br><small style="color: #666;">Processamento instantâneo</small>
             </label>
-            <label style="display: block; margin-bottom: 10px; cursor: pointer;">
+            <label style="display: block; margin-bottom: 10px; cursor: pointer; padding: 15px; border: 2px solid #e1e5e9; border-radius: 8px;" class="payment-method-option">
                 <input type="radio" name="payment_method" value="pix" style="margin-right: 10px;">
-                🏦 PIX (Teste)
+                <strong>🏦 PIX (Teste)</strong>
+                <br><small style="color: #666;">Pagamento instantâneo 24h</small>
             </label>
         </div>
     </div>
@@ -38,6 +40,97 @@
         <!-- Card Element Container -->
         <div id="card-container">
             <h4>Dados do Cartão:</h4>
+            
+            <!-- Endereço de Cobrança para Brasil -->
+            <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #e1e5e9; border-radius: 8px; background: #f8f9fa;">
+                <h5 style="margin-bottom: 15px;">📍 Endereço de Cobrança</h5>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div>
+                        <label for="billing-name" style="display: block; margin-bottom: 5px; font-weight: bold;">Nome Completo:</label>
+                        <input type="text" id="billing-name" name="billing-name" 
+                               value="{{ user.get_full_name|default:user.username }}"
+                               style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;" 
+                               required>
+                    </div>
+                    <div>
+                        <label for="billing-email" style="display: block; margin-bottom: 5px; font-weight: bold;">E-mail:</label>
+                        <input type="email" id="billing-email" name="billing-email" 
+                               value="{{ user.email }}"
+                               style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;" 
+                               required>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div>
+                        <label for="billing-address" style="display: block; margin-bottom: 5px; font-weight: bold;">Endereço:</label>
+                        <input type="text" id="billing-address" name="billing-address" 
+                               placeholder="Rua, número, complemento"
+                               style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;" 
+                               required>
+                    </div>
+                    <div>
+                        <label for="billing-postal-code" style="display: block; margin-bottom: 5px; font-weight: bold;">CEP:</label>
+                        <input type="text" id="billing-postal-code" name="billing-postal-code" 
+                               placeholder="00000-000"
+                               maxlength="9"
+                               style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;" 
+                               required>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 15px;">
+                    <div>
+                        <label for="billing-city" style="display: block; margin-bottom: 5px; font-weight: bold;">Cidade:</label>
+                        <input type="text" id="billing-city" name="billing-city" 
+                               placeholder="Cidade"
+                               style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;" 
+                               required>
+                    </div>
+                    <div>
+                        <label for="billing-state" style="display: block; margin-bottom: 5px; font-weight: bold;">Estado:</label>
+                        <select id="billing-state" name="billing-state" 
+                                style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;" 
+                                required>
+                            <option value="">Selecione</option>
+                            <option value="AC">Acre</option>
+                            <option value="AL">Alagoas</option>
+                            <option value="AP">Amapá</option>
+                            <option value="AM">Amazonas</option>
+                            <option value="BA">Bahia</option>
+                            <option value="CE">Ceará</option>
+                            <option value="DF">Distrito Federal</option>
+                            <option value="ES">Espírito Santo</option>
+                            <option value="GO">Goiás</option>
+                            <option value="MA">Maranhão</option>
+                            <option value="MT">Mato Grosso</option>
+                            <option value="MS">Mato Grosso do Sul</option>
+                            <option value="MG">Minas Gerais</option>
+                            <option value="PA">Pará</option>
+                            <option value="PB">Paraíba</option>
+                            <option value="PR">Paraná</option>
+                            <option value="PE">Pernambuco</option>
+                            <option value="PI">Piauí</option>
+                            <option value="RJ">Rio de Janeiro</option>
+                            <option value="RN">Rio Grande do Norte</option>
+                            <option value="RS">Rio Grande do Sul</option>
+                            <option value="RO">Rondônia</option>
+                            <option value="RR">Roraima</option>
+                            <option value="SC">Santa Catarina</option>
+                            <option value="SP">São Paulo</option>
+                            <option value="SE">Sergipe</option>
+                            <option value="TO">Tocantins</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="billing-country" style="display: block; margin-bottom: 5px; font-weight: bold;">País:</label>
+                        <input type="text" id="billing-country" name="billing-country" 
+                               value="BR" readonly
+                               style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background: #f0f0f0;">
+                    </div>
+                </div>
+            </div>
+            
             <div id="card-element" style="padding: 15px; border: 1px solid #ccc; border-radius: 8px; margin: 15px 0; background: white;">
                 <!-- Stripe Elements será inserido aqui -->
             </div>
@@ -46,14 +139,23 @@
 
         <!-- PIX Container -->
         <div id="pix-container" style="display: none;">
-            <div style="background: #e8f4fd; padding: 20px; border-radius: 8px; margin: 15px 0;">
-                <h4>💡 Simulação PIX</h4>
-                <p>No ambiente de teste, o PIX será simulado. Você será redirecionado para uma página de confirmação.</p>
+            <div style="background: #e8f4fd; padding: 20px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #007bff;">
+                <h4>🏦 Pagamento PIX</h4>
+                <p><strong>Como funciona no ambiente de teste:</strong></p>
+                <ol style="margin-left: 20px;">
+                    <li>Clique em "Pagar com PIX" abaixo</li>
+                    <li>Será gerado um QR Code de teste</li>
+                    <li>No ambiente real, você escanearia o código</li>
+                    <li>No teste, será redirecionado automaticamente</li>
+                </ol>
+                <div style="background: #fff3cd; padding: 10px; border-radius: 4px; margin-top: 15px;">
+                    <small><strong>⚠️ Nota:</strong> Este é um ambiente de testes. Nenhum dinheiro real será cobrado.</small>
+                </div>
             </div>
         </div>
 
         <!-- Submit Button -->
-        <button id="submit-button" type="submit" class="btn btn-primary" style="width: 100%; margin-top: 20px;">
+        <button id="submit-button" type="submit" class="btn btn-primary" style="width: 100%; margin-top: 20px; font-size: 16px; padding: 15px;">
             <span id="button-text">💳 Pagar R$ {{ product.price|floatformat:2 }}</span>
             <span id="spinner" style="display: none;">⏳ Processando...</span>
         </button>
@@ -62,8 +164,20 @@
         <div id="payment-message" style="display: none; margin-top: 15px; padding: 10px; border-radius: 4px;"></div>
     </form>
 
+    <!-- PIX Status Container (hidden initially) -->
+    <div id="pix-status" style="display: none; margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px; text-align: center;">
+        <h4>🏦 Aguardando Confirmação PIX</h4>
+        <p>Seu pagamento PIX foi iniciado. Em um ambiente real, você escanearia o QR Code.</p>
+        <div style="margin: 20px 0;">
+            <div style="width: 100%; height: 4px; background: #e1e5e9; border-radius: 2px;">
+                <div id="progress-bar" style="width: 0%; height: 100%; background: #28a745; border-radius: 2px; transition: width 0.3s;"></div>
+            </div>
+            <p style="margin-top: 10px; font-size: 14px;">Simulando processamento PIX...</p>
+        </div>
+    </div>
+
     <!-- Test Cards Helper -->
-    <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+    <div id="test-cards-helper" style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
         <h4>🧪 Cartões para Teste:</h4>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
             <div>
@@ -85,6 +199,26 @@
     </div>
 </div>
 
+<style>
+.payment-method-option {
+    transition: all 0.2s ease;
+}
+
+.payment-method-option:hover {
+    border-color: #6772e5 !important;
+    background-color: #f8f9ff;
+}
+
+.payment-method-option input[type="radio"]:checked + strong {
+    color: #6772e5;
+}
+
+.payment-method-selected {
+    border-color: #6772e5 !important;
+    background-color: #f8f9ff;
+}
+</style>
+
 <script>
     // Initialize Stripe
     const stripe = Stripe('{{ stripe_publishable_key }}');
@@ -98,6 +232,8 @@
     const paymentMessage = document.getElementById('payment-message');
     const cardContainer = document.getElementById('card-container');
     const pixContainer = document.getElementById('pix-container');
+    const pixStatus = document.getElementById('pix-status');
+    const testCardsHelper = document.getElementById('test-cards-helper');
 
     // Initialize card elements
     function initializeCardElement() {
@@ -125,12 +261,27 @@
         });
     }
 
+    // Handle payment method selection styling
+    function updatePaymentMethodStyles() {
+        document.querySelectorAll('.payment-method-option').forEach(option => {
+            const radio = option.querySelector('input[type="radio"]');
+            if (radio.checked) {
+                option.classList.add('payment-method-selected');
+            } else {
+                option.classList.remove('payment-method-selected');
+            }
+        });
+    }
+
     // Handle payment method change
     document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
         radio.addEventListener('change', function() {
+            updatePaymentMethodStyles();
+            
             if (this.value === 'card') {
                 cardContainer.style.display = 'block';
                 pixContainer.style.display = 'none';
+                testCardsHelper.style.display = 'block';
                 buttonText.textContent = '💳 Pagar R$ {{ product.price|floatformat:2 }}';
                 
                 if (!cardElement) {
@@ -139,6 +290,7 @@
             } else if (this.value === 'pix') {
                 cardContainer.style.display = 'none';
                 pixContainer.style.display = 'block';
+                testCardsHelper.style.display = 'none';
                 buttonText.textContent = '🏦 Pagar com PIX R$ {{ product.price|floatformat:2 }}';
             }
         });
@@ -146,6 +298,53 @@
 
     // Initialize with card by default
     initializeCardElement();
+    updatePaymentMethodStyles();
+
+    // Máscara para CEP brasileiro
+    const cepInput = document.getElementById('billing-postal-code');
+    if (cepInput) {
+        cepInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 5) {
+                value = value.substring(0, 5) + '-' + value.substring(5, 8);
+            }
+            e.target.value = value;
+        });
+
+        // Validação de CEP
+        cepInput.addEventListener('blur', function(e) {
+            const cep = e.target.value.replace(/\D/g, '');
+            if (cep.length === 8) {
+                // CEP válido - pode implementar consulta via API se necessário
+                e.target.style.borderColor = '#28a745';
+            } else if (cep.length > 0) {
+                e.target.style.borderColor = '#dc3545';
+            }
+        });
+    }
+
+    // Auto-completar endereço via CEP (opcional)
+    function consultarCEP(cep) {
+        if (cep.replace(/\D/g, '').length === 8) {
+            fetch(`https://viacep.com.br/ws/${cep.replace(/\D/g, '')}/json/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.erro) {
+                        document.getElementById('billing-city').value = data.localidade;
+                        document.getElementById('billing-state').value = data.uf;
+                        document.getElementById('billing-address').placeholder = data.logradouro || 'Rua, número, complemento';
+                    }
+                })
+                .catch(error => console.log('Erro ao consultar CEP:', error));
+        }
+    }
+
+    // Adicionar consulta automática de CEP
+    if (cepInput) {
+        cepInput.addEventListener('blur', function(e) {
+            consultarCEP(e.target.value);
+        });
+    }
 
     // Handle form submission
     form.addEventListener('submit', async (event) => {
@@ -175,19 +374,44 @@
                 return;
             }
 
-            // Confirm payment based on method
+            // Handle different payment methods
             let result;
             if (paymentMethod === 'card') {
+                // Coletar dados de endereço para cartão
+                const billingDetails = {
+                    name: document.getElementById('billing-name').value,
+                    email: document.getElementById('billing-email').value,
+                    address: {
+                        line1: document.getElementById('billing-address').value,
+                        city: document.getElementById('billing-city').value,
+                        state: document.getElementById('billing-state').value,
+                        postal_code: document.getElementById('billing-postal-code').value.replace(/\D/g, ''),
+                        country: 'BR'
+                    }
+                };
+
                 result = await stripe.confirmCardPayment(data.client_secret, {
                     payment_method: {
                         card: cardElement,
-                        billing_details: {
-                            name: '{{ user.get_full_name|default:user.username }}',
-                            email: '{{ user.email }}'
-                        }
+                        billing_details: billingDetails
                     }
                 });
             } else if (paymentMethod === 'pix') {
+                // Show PIX processing status
+                form.style.display = 'none';
+                pixStatus.style.display = 'block';
+                
+                // Simulate PIX processing with progress bar
+                let progress = 0;
+                const progressBar = document.getElementById('progress-bar');
+                const progressInterval = setInterval(() => {
+                    progress += 10;
+                    progressBar.style.width = progress + '%';
+                    if (progress >= 100) {
+                        clearInterval(progressInterval);
+                    }
+                }, 200);
+
                 result = await stripe.confirmPixPayment(data.client_secret, {
                     return_url: window.location.origin + '{% url "payments:payment_success" 0 %}'.replace('0', data.payment_id)
                 });
@@ -196,15 +420,24 @@
             if (result.error) {
                 showMessage(result.error.message, 'error');
                 setLoading(false);
+                form.style.display = 'block';
+                pixStatus.style.display = 'none';
             } else {
                 // Success - redirect to success page
-                window.location.href = '{% url "payments:payment_success" 0 %}'.replace('0', data.payment_id);
+                if (paymentMethod === 'pix' && result.paymentIntent.status === 'requires_action') {
+                    // For PIX, this is expected - the user will be redirected
+                    window.location.href = '{% url "payments:payment_success" 0 %}'.replace('0', data.payment_id);
+                } else if (result.paymentIntent.status === 'succeeded') {
+                    window.location.href = '{% url "payments:payment_success" 0 %}'.replace('0', data.payment_id);
+                }
             }
 
         } catch (error) {
             console.error('Payment error:', error);
             showMessage('Erro inesperado. Tente novamente.', 'error');
             setLoading(false);
+            form.style.display = 'block';
+            pixStatus.style.display = 'none';
         }
     });
 
@@ -221,7 +454,7 @@
 
     function showMessage(message, type = 'error') {
         paymentMessage.textContent = message;
-        paymentMessage.className = type === 'error' ? 'alert-error' : 'alert-success';
+        paymentMessage.className = type === 'error' ? 'alert alert-error' : 'alert alert-success';
         paymentMessage.style.display = 'block';
         
         // Auto-hide after 5 seconds
