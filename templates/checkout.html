@@ -1,0 +1,233 @@
+<!-- templates/payments/checkout.html -->
+{% extends 'payments/base.html' %}
+
+{% block title %}Checkout - {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>💳 Checkout</h2>
+    
+    <!-- Product Info -->
+    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+        <h3>{{ product.name }}</h3>
+        <p>{{ product.description }}</p>
+        <div style="font-size: 1.5em; font-weight: bold; color: #6772e5; margin-top: 15px;">
+            R$ {{ product.price|floatformat:2 }}
+        </div>
+    </div>
+
+    <!-- Payment Methods -->
+    <div style="margin-bottom: 30px;">
+        <h4>Escolha o método de pagamento:</h4>
+        <div style="margin-top: 15px;">
+            <label style="display: block; margin-bottom: 10px; cursor: pointer;">
+                <input type="radio" name="payment_method" value="card" checked style="margin-right: 10px;">
+                💳 Cartão de Crédito/Débito
+            </label>
+            <label style="display: block; margin-bottom: 10px; cursor: pointer;">
+                <input type="radio" name="payment_method" value="pix" style="margin-right: 10px;">
+                🏦 PIX (Teste)
+            </label>
+        </div>
+    </div>
+
+    <!-- Payment Form -->
+    <form id="payment-form">
+        {% csrf_token %}
+        
+        <!-- Card Element Container -->
+        <div id="card-container">
+            <h4>Dados do Cartão:</h4>
+            <div id="card-element" style="padding: 15px; border: 1px solid #ccc; border-radius: 8px; margin: 15px 0; background: white;">
+                <!-- Stripe Elements será inserido aqui -->
+            </div>
+            <div id="card-errors" style="color: #dc3545; margin-top: 10px;"></div>
+        </div>
+
+        <!-- PIX Container -->
+        <div id="pix-container" style="display: none;">
+            <div style="background: #e8f4fd; padding: 20px; border-radius: 8px; margin: 15px 0;">
+                <h4>💡 Simulação PIX</h4>
+                <p>No ambiente de teste, o PIX será simulado. Você será redirecionado para uma página de confirmação.</p>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button id="submit-button" type="submit" class="btn btn-primary" style="width: 100%; margin-top: 20px;">
+            <span id="button-text">💳 Pagar R$ {{ product.price|floatformat:2 }}</span>
+            <span id="spinner" style="display: none;">⏳ Processando...</span>
+        </button>
+
+        <!-- Error Message -->
+        <div id="payment-message" style="display: none; margin-top: 15px; padding: 10px; border-radius: 4px;"></div>
+    </form>
+
+    <!-- Test Cards Helper -->
+    <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+        <h4>🧪 Cartões para Teste:</h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+            <div>
+                <strong>✅ Sucesso:</strong><br>
+                <code>4242 4242 4242 4242</code>
+            </div>
+            <div>
+                <strong>❌ Falha:</strong><br>
+                <code>4000 0000 0000 0002</code>
+            </div>
+            <div>
+                <strong>🔐 3D Secure:</strong><br>
+                <code>4000 0000 0000 3220</code>
+            </div>
+        </div>
+        <p style="margin-top: 10px; font-size: 0.9em; color: #666;">
+            Use qualquer CVC (ex: 123) e data de expiração no futuro (ex: 12/25)
+        </p>
+    </div>
+</div>
+
+<script>
+    // Initialize Stripe
+    const stripe = Stripe('{{ stripe_publishable_key }}');
+    let elements, cardElement;
+
+    // Form elements
+    const form = document.getElementById('payment-form');
+    const submitButton = document.getElementById('submit-button');
+    const buttonText = document.getElementById('button-text');
+    const spinner = document.getElementById('spinner');
+    const paymentMessage = document.getElementById('payment-message');
+    const cardContainer = document.getElementById('card-container');
+    const pixContainer = document.getElementById('pix-container');
+
+    // Initialize card elements
+    function initializeCardElement() {
+        elements = stripe.elements();
+        cardElement = elements.create('card', {
+            style: {
+                base: {
+                    fontSize: '16px',
+                    color: '#424770',
+                    '::placeholder': {
+                        color: '#aab7c4',
+                    },
+                },
+            },
+        });
+        cardElement.mount('#card-element');
+
+        cardElement.on('change', ({error}) => {
+            const displayError = document.getElementById('card-errors');
+            if (error) {
+                displayError.textContent = error.message;
+            } else {
+                displayError.textContent = '';
+            }
+        });
+    }
+
+    // Handle payment method change
+    document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'card') {
+                cardContainer.style.display = 'block';
+                pixContainer.style.display = 'none';
+                buttonText.textContent = '💳 Pagar R$ {{ product.price|floatformat:2 }}';
+                
+                if (!cardElement) {
+                    initializeCardElement();
+                }
+            } else if (this.value === 'pix') {
+                cardContainer.style.display = 'none';
+                pixContainer.style.display = 'block';
+                buttonText.textContent = '🏦 Pagar com PIX R$ {{ product.price|floatformat:2 }}';
+            }
+        });
+    });
+
+    // Initialize with card by default
+    initializeCardElement();
+
+    // Handle form submission
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        setLoading(true);
+
+        const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+
+        try {
+            // Create payment intent
+            const response = await fetch('', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    payment_method: paymentMethod
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+                showMessage(data.error, 'error');
+                setLoading(false);
+                return;
+            }
+
+            // Confirm payment based on method
+            let result;
+            if (paymentMethod === 'card') {
+                result = await stripe.confirmCardPayment(data.client_secret, {
+                    payment_method: {
+                        card: cardElement,
+                        billing_details: {
+                            name: '{{ user.get_full_name|default:user.username }}',
+                            email: '{{ user.email }}'
+                        }
+                    }
+                });
+            } else if (paymentMethod === 'pix') {
+                result = await stripe.confirmPixPayment(data.client_secret, {
+                    return_url: window.location.origin + '{% url "payments:payment_success" 0 %}'.replace('0', data.payment_id)
+                });
+            }
+
+            if (result.error) {
+                showMessage(result.error.message, 'error');
+                setLoading(false);
+            } else {
+                // Success - redirect to success page
+                window.location.href = '{% url "payments:payment_success" 0 %}'.replace('0', data.payment_id);
+            }
+
+        } catch (error) {
+            console.error('Payment error:', error);
+            showMessage('Erro inesperado. Tente novamente.', 'error');
+            setLoading(false);
+        }
+    });
+
+    function setLoading(loading) {
+        submitButton.disabled = loading;
+        if (loading) {
+            buttonText.style.display = 'none';
+            spinner.style.display = 'inline';
+        } else {
+            buttonText.style.display = 'inline';
+            spinner.style.display = 'none';
+        }
+    }
+
+    function showMessage(message, type = 'error') {
+        paymentMessage.textContent = message;
+        paymentMessage.className = type === 'error' ? 'alert-error' : 'alert-success';
+        paymentMessage.style.display = 'block';
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            paymentMessage.style.display = 'none';
+        }, 5000);
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,86 @@
+# .gitignore
+
+# ===== SECRETS & CONFIG =====
+.env
+.env.local
+.env.production
+*.key
+secrets.txt
+
+# ===== Django =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ===== Database =====
+db.sqlite3
+db.sqlite3-journal
+*.db
+
+# ===== Media Files =====
+media/
+staticfiles/
+
+# ===== Virtual Environment =====
+venv/
+env/
+ENV/
+.venv/
+
+# ===== IDE =====
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ===== OS =====
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ===== Logs =====
+*.log
+logs/
+
+# ===== Temporary files =====
+*.tmp
+*.temp
+.cache/
+
+# ===== Backup files =====
+*.bak
+*.backup
+
+# ===== Local development =====
+local_settings.py
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ===== ngrok =====
+ngrok
+ngrok.exe
