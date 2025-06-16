@@ -225,3 +225,34 @@ def health_check(request):
     """Health check para Railway"""
     return Response({'status': 'healthy'})
 # Create your views here.
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def create_sample_products(request):
+    """TEMPORÁRIO: Criar produtos de exemplo"""
+    
+    # Verificar se já existem produtos
+    if Product.objects.exists():
+        return Response({'error': 'Produtos já existem'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Produtos de exemplo
+    produtos = [
+        {'name': 'Curso Python Avançado', 'description': 'Curso completo de Python com Django', 'price': 197.00},
+        {'name': 'E-book Stripe Brasil', 'description': 'Guia definitivo do Stripe no Brasil', 'price': 47.90},
+        {'name': 'Consultoria 1h', 'description': 'Mentoria personalizada em pagamentos', 'price': 250.00},
+        {'name': 'Workshop Boletos', 'description': 'Como implementar boletos com Stripe', 'price': 97.00},
+    ]
+    
+    # Criar produtos
+    created_products = []
+    for produto_data in produtos:
+        produto = Product.objects.create(**produto_data)
+        created_products.append({
+            'id': produto.id,
+            'name': produto.name,
+            'price': float(produto.price)
+        })
+    
+    return Response({
+        'message': f'{len(created_products)} produtos criados com sucesso',
+        'products': created_products
+    })

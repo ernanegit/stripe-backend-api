@@ -23,4 +23,7 @@ urlpatterns = [
     path('payments/', views.PaymentListView.as_view(), name='payment_list'),
     path('payments/<int:pk>/', views.PaymentDetailView.as_view(), name='payment_detail'),
     path('payments/create-intent/', views.create_payment_intent, name='create_payment_intent'),
+
+
+    path('products/create-samples/', views.create_sample_products, name='create_sample_products'),
 ]
