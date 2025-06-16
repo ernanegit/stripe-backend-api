@@ -13,7 +13,7 @@ ALLOWED_HOSTS = [
 # Database PostgreSQL para produção
 DATABASES = {
     'default': dj_database_url.parse(
-        config('DATABASE_URL'),
+        os.getenv('DATABASE_URL'),
         conn_max_age=600,
         conn_health_checks=True,
     )
@@ -21,7 +21,7 @@ DATABASES = {
 
 # CORS para produção
 CORS_ALLOWED_ORIGINS = [
-    config('FRONTEND_URL', default='https://your-app.vercel.app'),
+    os.getenv('FRONTEND_URL', 'https://your-app.vercel.app'),
 ]
 
 # Security Settings
