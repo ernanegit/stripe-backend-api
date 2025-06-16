@@ -3,5 +3,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('payments.urls')),  # ← Adicione esta linha
+    path('api/v1/', include('api.urls')),
+    # Webhook em payments (sem namespace para evitar conflito)
+    path('webhook/stripe/', include('payments.urls')),
 ]
