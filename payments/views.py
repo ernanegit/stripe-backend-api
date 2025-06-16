@@ -1,4 +1,4 @@
-# payments/views.py
+# payments/views.py - ARQUIVO COMPLETO CORRIGIDO
 import stripe
 import json
 import logging
@@ -50,13 +50,15 @@ def product_detail(request, pk):
 
 @login_required
 def checkout(request, product_id):
-    """Página de checkout"""
+    """Página de checkout com suporte a cartão, PIX e boleto"""
     product = get_object_or_404(Product, id=product_id, active=True)
     
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
             payment_method = data.get('payment_method', 'card')
+            
+            logger.info(f"Iniciando checkout para método: {payment_method}, produto: {product.name}")
             
             # Cria ou obtém customer do Stripe
             customer = None
@@ -78,41 +80,77 @@ def checkout(request, product_id):
                 logger.error(f"Erro ao criar customer: {e}")
                 return JsonResponse({'error': str(e)}, status=400)
             
-            # Configura payment methods baseado no tipo
-            payment_method_types = ['card']
+            # Configuração específica para cada método de pagamento
             if payment_method == 'pix':
-                payment_method_types = ['pix']
+                # PIX requer configurações específicas
+                intent_data = {
+                    'amount': int(product.price * 100),  # Em centavos
+                    'currency': 'brl',
+                    'payment_method_types': ['pix'],
+                    'customer': customer.id if customer else None,
+                    'payment_method_options': {
+                        'pix': {
+                            'expires_after_seconds': 86400  # 24 horas para expirar
+                        }
+                    },
+                    'confirmation_method': 'automatic',
+                    'confirm': True,  # Confirma automaticamente
+                    'return_url': request.build_absolute_uri(f'/success/{0}/'),  # Será atualizado
+                    'metadata': {
+                        'product_id': product.id,
+                        'user_id': request.user.id,
+                        'django_payment_method': payment_method
+                    }
+                }
             elif payment_method == 'boleto':
-                payment_method_types = ['boleto']
+                logger.info("=== CONFIGURANDO BOLETO COM AUTOMATIC ===")
+                logger.info(f"User: {request.user.username}, Email: {request.user.email}")
+                logger.info(f"Product: {product.name}, Price: {product.price}")
+                
+                # CORREÇÃO DEFINITIVA: SEMPRE usar automatic para boleto
+                intent_data = {
+                    'amount': int(product.price * 100),  # Em centavos
+                    'currency': 'brl',
+                    'payment_method_types': ['boleto'],
+                    'customer': customer.id if customer else None,
+                    'payment_method_options': {
+                        'boleto': {
+                            'expires_after_days': 3
+                        }
+                    },
+                    # FUNDAMENTAL: usar automatic para permitir confirmação no frontend
+                    'confirmation_method': 'automatic',
+                    'metadata': {
+                        'product_id': str(product.id),
+                        'user_id': str(request.user.id),
+                        'django_payment_method': payment_method,
+                        'user_email': request.user.email
+                    }
+                }
+                
+                logger.info(f"Intent data para boleto: {intent_data}")
+                logger.info("=== BOLETO CONFIGURADO COM AUTOMATIC ===")
+            else:
+                # Configuração para cartão (padrão)
+                intent_data = {
+                    'amount': int(product.price * 100),
+                    'currency': 'brl',
+                    'payment_method_types': ['card'],
+                    'customer': customer.id if customer else None,
+                    # TAMBÉM garantir automatic para cartão
+                    'confirmation_method': 'automatic',
+                    'metadata': {
+                        'product_id': product.id,
+                        'user_id': request.user.id,
+                        'django_payment_method': payment_method
+                    }
+                }
             
             # Cria Payment Intent
-            intent_data = {
-                'amount': int(product.price * 100),  # Em centavos
-                'currency': 'brl',
-                'payment_method_types': payment_method_types,
-                'customer': customer.id if customer else None,
-                'metadata': {
-                    'product_id': product.id,
-                    'user_id': request.user.id,
-                    'django_payment_method': payment_method
-                }
-            }
-            
-            # Configurações específicas por método
-            if payment_method == 'pix':
-                intent_data['payment_method_options'] = {
-                    'pix': {
-                        'expires_after_seconds': 86400  # 24 horas
-                    }
-                }
-            elif payment_method == 'boleto':
-                intent_data['payment_method_options'] = {
-                    'boleto': {
-                        'expires_after_days': 3
-                    }
-                }
-            
+            logger.info("Criando Payment Intent...")
             intent = stripe.PaymentIntent.create(**intent_data)
+            logger.info(f"Payment Intent criado com sucesso: {intent.id}, status: {intent.status}")
+            logger.info(f"Confirmation method: {intent.confirmation_method}")  # LOG PARA VERIFICAR
             
             # Salva pagamento no banco
             payment = Payment.objects.create(
@@ -125,19 +163,40 @@ def checkout(request, product_id):
                 status='pending'
             )
             
+            # Atualiza return_url com o ID do pagamento real para PIX
+            if payment_method == 'pix':
+                stripe.PaymentIntent.modify(
+                    intent.id,
+                    return_url=request.build_absolute_uri(f'/success/{payment.id}/')
+                )
+            
             logger.info(f"Payment Intent criado: {intent.id} para usuário {request.user.username}")
             
-            return JsonResponse({
+            response_data = {
                 'client_secret': intent.client_secret,
                 'payment_id': payment.id,
                 'payment_method': payment_method
-            })
+            }
+            
+            # Para PIX, incluir informações adicionais
+            if payment_method == 'pix' and intent.status == 'requires_action':
+                response_data['requires_action'] = True
+                response_data['next_action'] = intent.next_action
+            
+            # Para Boleto, client_secret é suficiente (frontend vai confirmar)
+            if payment_method == 'boleto':
+                response_data['status'] = intent.status
+            
+            logger.info(f"Response data: {response_data}")
+            return JsonResponse(response_data)
             
         except stripe.error.StripeError as e:
             logger.error(f"Erro Stripe: {e}")
+            logger.error(f"Detalhes do erro: {e.user_message if hasattr(e, 'user_message') else 'N/A'}")
             return JsonResponse({'error': str(e)}, status=400)
         except Exception as e:
             logger.error(f"Erro inesperado: {e}")
+            logger.error(f"Traceback: ", exc_info=True)
             return JsonResponse({'error': 'Erro interno do servidor'}, status=500)
     
     # GET request - mostra página de checkout
@@ -192,7 +251,7 @@ def payment_detail(request, pk):
 @csrf_exempt
 @require_POST
 def stripe_webhook(request):
-    """Webhook para receber eventos do Stripe"""
+    """Webhook aprimorado para cartão, PIX e boleto"""
     payload = request.body
     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
     
@@ -223,7 +282,7 @@ def stripe_webhook(request):
     
     logger.info(f"Processando webhook: {event['type']} - {event['id']}")
     
-    # Processa eventos
+    # Processa eventos (incluindo novos eventos para PIX e Boleto)
     try:
         if event['type'] == 'payment_intent.succeeded':
             handle_payment_succeeded(event['data']['object'])
@@ -233,6 +292,8 @@ def stripe_webhook(request):
             handle_payment_requires_action(event['data']['object'])
         elif event['type'] == 'payment_intent.canceled':
             handle_payment_canceled(event['data']['object'])
+        elif event['type'] == 'payment_intent.processing':
+            handle_payment_processing(event['data']['object'])
         else:
             logger.info(f"Evento não tratado: {event['type']}")
         
@@ -299,5 +360,15 @@ def handle_payment_canceled(payment_intent):
         payment.status = 'canceled'
         payment.save()
         logger.info(f"Pagamento {payment.id} cancelado")
+    except Payment.DoesNotExist:
+        logger.error(f"Pagamento não encontrado para intent: {payment_intent['id']}")
+
+def handle_payment_processing(payment_intent):
+    """Processa pagamento em andamento (comum para PIX e Boleto)"""
+    try:
+        payment = Payment.objects.get(stripe_payment_intent_id=payment_intent['id'])
+        payment.status = 'processing'
+        payment.save()
+        logger.info(f"Pagamento {payment.id} marcado como processando")
     except Payment.DoesNotExist:
         logger.error(f"Pagamento não encontrado para intent: {payment_intent['id']}")

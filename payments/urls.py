@@ -1,6 +1,6 @@
-# payments/urls.py
+# payments/urls.py - CORRIGIDO
 from django.urls import path
-from . import views
+from . import views  # MUDANÇA: usar views em vez de views1
 
 app_name = 'payments'
 

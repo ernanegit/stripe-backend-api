@@ -1,4 +1,4 @@
-<!-- templates/payments/checkout.html -->
+<!-- templates/payments/checkout.html - ARQUIVO COMPLETO COM CORREÇÕES DO BOLETO -->
 {% extends 'payments/base.html' %}
 
 {% block title %}Checkout - {{ product.name }}{% endblock %}
@@ -30,6 +30,11 @@
                 <strong>🏦 PIX (Teste)</strong>
                 <br><small style="color: #666;">Pagamento instantâneo 24h</small>
             </label>
+            <label style="display: block; margin-bottom: 10px; cursor: pointer; padding: 15px; border: 2px solid #e1e5e9; border-radius: 8px;" class="payment-method-option">
+                <input type="radio" name="payment_method" value="boleto" style="margin-right: 10px;">
+                <strong>📄 Boleto Bancário</strong>
+                <br><small style="color: #666;">Vencimento em até 3 dias úteis</small>
+            </label>
         </div>
     </div>
 
@@ -37,100 +42,107 @@
     <form id="payment-form">
         {% csrf_token %}
         
-        <!-- Card Element Container -->
-        <div id="card-container">
-            <h4>Dados do Cartão:</h4>
-            
-            <!-- Endereço de Cobrança para Brasil -->
-            <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #e1e5e9; border-radius: 8px; background: #f8f9fa;">
-                <h5 style="margin-bottom: 15px;">📍 Endereço de Cobrança</h5>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                    <div>
-                        <label for="billing-name" style="display: block; margin-bottom: 5px; font-weight: bold;">Nome Completo:</label>
-                        <input type="text" id="billing-name" name="billing-name" 
-                               value="{{ user.get_full_name|default:user.username }}"
-                               style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;" 
-                               required>
-                    </div>
-                    <div>
-                        <label for="billing-email" style="display: block; margin-bottom: 5px; font-weight: bold;">E-mail:</label>
-                        <input type="email" id="billing-email" name="billing-email" 
-                               value="{{ user.email }}"
-                               style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;" 
-                               required>
-                    </div>
+        <!-- Endereço de Cobrança - SEMPRE VISÍVEL -->
+        <div id="billing-section" style="margin-bottom: 20px; padding: 15px; border: 1px solid #e1e5e9; border-radius: 8px; background: #f8f9fa;">
+            <h5 style="margin-bottom: 15px;">📍 Endereço de Cobrança</h5>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div>
+                    <label for="billing-name" style="display: block; margin-bottom: 5px; font-weight: bold;">Nome Completo:</label>
+                    <input type="text" id="billing-name" name="billing-name" 
+                           value="{{ user.get_full_name|default:user.username }}"
+                           style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;" 
+                           required>
                 </div>
-                
-                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin-bottom: 15px;">
-                    <div>
-                        <label for="billing-address" style="display: block; margin-bottom: 5px; font-weight: bold;">Endereço:</label>
-                        <input type="text" id="billing-address" name="billing-address" 
-                               placeholder="Rua, número, complemento"
-                               style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;" 
-                               required>
-                    </div>
-                    <div>
-                        <label for="billing-postal-code" style="display: block; margin-bottom: 5px; font-weight: bold;">CEP:</label>
-                        <input type="text" id="billing-postal-code" name="billing-postal-code" 
-                               placeholder="00000-000"
-                               maxlength="9"
-                               style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;" 
-                               required>
-                    </div>
-                </div>
-                
-                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 15px;">
-                    <div>
-                        <label for="billing-city" style="display: block; margin-bottom: 5px; font-weight: bold;">Cidade:</label>
-                        <input type="text" id="billing-city" name="billing-city" 
-                               placeholder="Cidade"
-                               style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;" 
-                               required>
-                    </div>
-                    <div>
-                        <label for="billing-state" style="display: block; margin-bottom: 5px; font-weight: bold;">Estado:</label>
-                        <select id="billing-state" name="billing-state" 
-                                style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;" 
-                                required>
-                            <option value="">Selecione</option>
-                            <option value="AC">Acre</option>
-                            <option value="AL">Alagoas</option>
-                            <option value="AP">Amapá</option>
-                            <option value="AM">Amazonas</option>
-                            <option value="BA">Bahia</option>
-                            <option value="CE">Ceará</option>
-                            <option value="DF">Distrito Federal</option>
-                            <option value="ES">Espírito Santo</option>
-                            <option value="GO">Goiás</option>
-                            <option value="MA">Maranhão</option>
-                            <option value="MT">Mato Grosso</option>
-                            <option value="MS">Mato Grosso do Sul</option>
-                            <option value="MG">Minas Gerais</option>
-                            <option value="PA">Pará</option>
-                            <option value="PB">Paraíba</option>
-                            <option value="PR">Paraná</option>
-                            <option value="PE">Pernambuco</option>
-                            <option value="PI">Piauí</option>
-                            <option value="RJ">Rio de Janeiro</option>
-                            <option value="RN">Rio Grande do Norte</option>
-                            <option value="RS">Rio Grande do Sul</option>
-                            <option value="RO">Rondônia</option>
-                            <option value="RR">Roraima</option>
-                            <option value="SC">Santa Catarina</option>
-                            <option value="SP">São Paulo</option>
-                            <option value="SE">Sergipe</option>
-                            <option value="TO">Tocantins</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="billing-country" style="display: block; margin-bottom: 5px; font-weight: bold;">País:</label>
-                        <input type="text" id="billing-country" name="billing-country" 
-                               value="BR" readonly
-                               style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background: #f0f0f0;">
-                    </div>
+                <div>
+                    <label for="billing-email" style="display: block; margin-bottom: 5px; font-weight: bold;">E-mail:</label>
+                    <input type="email" id="billing-email" name="billing-email" 
+                           value="{{ user.email }}"
+                           style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;" 
+                           required>
                 </div>
             </div>
             
+            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div>
+                    <label for="billing-address" style="display: block; margin-bottom: 5px; font-weight: bold;">Endereço:</label>
+                    <input type="text" id="billing-address" name="billing-address" 
+                           placeholder="Rua, número, complemento"
+                           style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;" 
+                           required>
+                </div>
+                <div>
+                    <label for="billing-postal-code" style="display: block; margin-bottom: 5px; font-weight: bold;">CEP:</label>
+                    <input type="text" id="billing-postal-code" name="billing-postal-code" 
+                           placeholder="00000-000"
+                           maxlength="9"
+                           style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;" 
+                           required>
+                </div>
+                <div>
+                    <label for="billing-tax-id" style="display: block; margin-bottom: 5px; font-weight: bold;">CPF/CNPJ:</label>
+                    <input type="text" id="billing-tax-id" name="billing-tax-id" 
+                           placeholder="000.000.000-00"
+                           maxlength="18"
+                           style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;" 
+                           required>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 15px;">
+                <div>
+                    <label for="billing-city" style="display: block; margin-bottom: 5px; font-weight: bold;">Cidade:</label>
+                    <input type="text" id="billing-city" name="billing-city" 
+                           placeholder="Cidade"
+                           style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;" 
+                           required>
+                </div>
+                <div>
+                    <label for="billing-state" style="display: block; margin-bottom: 5px; font-weight: bold;">Estado:</label>
+                    <select id="billing-state" name="billing-state" 
+                            style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;" 
+                            required>
+                        <option value="">Selecione</option>
+                        <option value="AC">Acre</option>
+                        <option value="AL">Alagoas</option>
+                        <option value="AP">Amapá</option>
+                        <option value="AM">Amazonas</option>
+                        <option value="BA">Bahia</option>
+                        <option value="CE">Ceará</option>
+                        <option value="DF">Distrito Federal</option>
+                        <option value="ES">Espírito Santo</option>
+                        <option value="GO">Goiás</option>
+                        <option value="MA">Maranhão</option>
+                        <option value="MT">Mato Grosso</option>
+                        <option value="MS">Mato Grosso do Sul</option>
+                        <option value="MG">Minas Gerais</option>
+                        <option value="PA">Pará</option>
+                        <option value="PB">Paraíba</option>
+                        <option value="PR">Paraná</option>
+                        <option value="PE">Pernambuco</option>
+                        <option value="PI">Piauí</option>
+                        <option value="RJ">Rio de Janeiro</option>
+                        <option value="RN">Rio Grande do Norte</option>
+                        <option value="RS">Rio Grande do Sul</option>
+                        <option value="RO">Rondônia</option>
+                        <option value="RR">Roraima</option>
+                        <option value="SC">Santa Catarina</option>
+                        <option value="SP">São Paulo</option>
+                        <option value="SE">Sergipe</option>
+                        <option value="TO">Tocantins</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="billing-country" style="display: block; margin-bottom: 5px; font-weight: bold;">País:</label>
+                    <input type="text" id="billing-country" name="billing-country" 
+                           value="BR" readonly
+                           style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background: #f0f0f0;">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Card Element Container - APENAS PARA CARTÃO -->
+        <div id="card-container">
+            <h4>Dados do Cartão:</h4>
             <div id="card-element" style="padding: 15px; border: 1px solid #ccc; border-radius: 8px; margin: 15px 0; background: white;">
                 <!-- Stripe Elements será inserido aqui -->
             </div>
@@ -150,6 +162,26 @@
                 </ol>
                 <div style="background: #fff3cd; padding: 10px; border-radius: 4px; margin-top: 15px;">
                     <small><strong>⚠️ Nota:</strong> Este é um ambiente de testes. Nenhum dinheiro real será cobrado.</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Boleto Container -->
+        <div id="boleto-container" style="display: none;">
+            <div style="background: #fff3cd; padding: 20px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #ffc107;">
+                <h4>📄 Pagamento via Boleto</h4>
+                <p><strong>Como funciona no ambiente de teste:</strong></p>
+                <ol style="margin-left: 20px;">
+                    <li>Preencha o CPF/CNPJ e dados de endereço</li>
+                    <li>Clique em "Gerar Boleto" abaixo</li>
+                    <li>Será gerado um boleto de teste</li>
+                    <li>No ambiente real, você imprimiria o boleto</li>
+                </ol>
+                <div style="background: #d4edda; padding: 10px; border-radius: 4px; margin-top: 15px;">
+                    <small><strong>💰 Vantagens:</strong> Sem necessidade de cartão, pagamento em qualquer banco ou lotérica.</small>
+                </div>
+                <div style="background: #f8d7da; padding: 10px; border-radius: 4px; margin-top: 10px;">
+                    <small><strong>⚠️ Nota:</strong> CPF/CNPJ obrigatório para boleto. Use CPF de teste: 12345678901</small>
                 </div>
             </div>
         </div>
@@ -217,9 +249,35 @@
     border-color: #6772e5 !important;
     background-color: #f8f9ff;
 }
+
+.alert {
+    padding: 12px 20px;
+    border-radius: 4px;
+    margin: 10px 0;
+}
+
+.alert-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+/* CEP específico */
+#billing-postal-code {
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+}
 </style>
 
 <script>
+    console.log('=== SCRIPT CARREGADO ===');
+    
     // Initialize Stripe
     const stripe = Stripe('{{ stripe_publishable_key }}');
     let elements, cardElement;
@@ -232,33 +290,46 @@
     const paymentMessage = document.getElementById('payment-message');
     const cardContainer = document.getElementById('card-container');
     const pixContainer = document.getElementById('pix-container');
+    const boletoContainer = document.getElementById('boleto-container');
     const pixStatus = document.getElementById('pix-status');
     const testCardsHelper = document.getElementById('test-cards-helper');
 
+    console.log('Elementos encontrados:', {
+        form: !!form,
+        submitButton: !!submitButton,
+        cardContainer: !!cardContainer,
+        pixContainer: !!pixContainer,
+        boletoContainer: !!boletoContainer
+    });
+
     // Initialize card elements
     function initializeCardElement() {
-        elements = stripe.elements();
-        cardElement = elements.create('card', {
-            style: {
-                base: {
-                    fontSize: '16px',
-                    color: '#424770',
-                    '::placeholder': {
-                        color: '#aab7c4',
+        console.log('Inicializando card element...');
+        if (!cardElement) {
+            elements = stripe.elements();
+            cardElement = elements.create('card', {
+                style: {
+                    base: {
+                        fontSize: '16px',
+                        color: '#424770',
+                        '::placeholder': {
+                            color: '#aab7c4',
+                        },
                     },
                 },
-            },
-        });
-        cardElement.mount('#card-element');
+            });
+            cardElement.mount('#card-element');
 
-        cardElement.on('change', ({error}) => {
-            const displayError = document.getElementById('card-errors');
-            if (error) {
-                displayError.textContent = error.message;
-            } else {
-                displayError.textContent = '';
-            }
-        });
+            cardElement.on('change', ({error}) => {
+                const displayError = document.getElementById('card-errors');
+                if (error) {
+                    displayError.textContent = error.message;
+                } else {
+                    displayError.textContent = '';
+                }
+            });
+            console.log('Card element inicializado');
+        }
     }
 
     // Handle payment method selection styling
@@ -276,22 +347,29 @@
     // Handle payment method change
     document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
         radio.addEventListener('change', function() {
+            console.log('Método de pagamento mudou para:', this.value);
             updatePaymentMethodStyles();
             
             if (this.value === 'card') {
                 cardContainer.style.display = 'block';
                 pixContainer.style.display = 'none';
+                boletoContainer.style.display = 'none';
                 testCardsHelper.style.display = 'block';
                 buttonText.textContent = '💳 Pagar R$ {{ product.price|floatformat:2 }}';
                 
-                if (!cardElement) {
-                    initializeCardElement();
-                }
+                initializeCardElement();
             } else if (this.value === 'pix') {
                 cardContainer.style.display = 'none';
                 pixContainer.style.display = 'block';
+                boletoContainer.style.display = 'none';
                 testCardsHelper.style.display = 'none';
                 buttonText.textContent = '🏦 Pagar com PIX R$ {{ product.price|floatformat:2 }}';
+            } else if (this.value === 'boleto') {
+                cardContainer.style.display = 'none';
+                pixContainer.style.display = 'none';
+                boletoContainer.style.display = 'block';
+                testCardsHelper.style.display = 'none';
+                buttonText.textContent = '📄 Gerar Boleto R$ {{ product.price|floatformat:2 }}';
             }
         });
     });
@@ -311,19 +389,50 @@
             e.target.value = value;
         });
 
-        // Validação de CEP
         cepInput.addEventListener('blur', function(e) {
             const cep = e.target.value.replace(/\D/g, '');
             if (cep.length === 8) {
-                // CEP válido - pode implementar consulta via API se necessário
                 e.target.style.borderColor = '#28a745';
+                consultarCEP(e.target.value);
             } else if (cep.length > 0) {
                 e.target.style.borderColor = '#dc3545';
             }
         });
     }
 
-    // Auto-completar endereço via CEP (opcional)
+    // Máscara para CPF/CNPJ
+    const taxIdInput = document.getElementById('billing-tax-id');
+    if (taxIdInput) {
+        taxIdInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            
+            if (value.length <= 11) {
+                // Formato CPF: 000.000.000-00
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            } else {
+                // Formato CNPJ: 00.000.000/0000-00
+                value = value.replace(/(\d{2})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d)/, '$1/$2');
+                value = value.replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+            }
+            
+            e.target.value = value;
+        });
+
+        taxIdInput.addEventListener('blur', function(e) {
+            const taxId = e.target.value.replace(/\D/g, '');
+            if (taxId.length === 11 || taxId.length === 14) {
+                e.target.style.borderColor = '#28a745';
+            } else if (taxId.length > 0) {
+                e.target.style.borderColor = '#dc3545';
+            }
+        });
+    }
+
+    // Auto-completar endereço via CEP
     function consultarCEP(cep) {
         if (cep.replace(/\D/g, '').length === 8) {
             fetch(`https://viacep.com.br/ws/${cep.replace(/\D/g, '')}/json/`)
@@ -339,22 +448,89 @@
         }
     }
 
-    // Adicionar consulta automática de CEP
-    if (cepInput) {
-        cepInput.addEventListener('blur', function(e) {
-            consultarCEP(e.target.value);
+    // Validação de campos obrigatórios
+    function validateFields() {
+        console.log('Validando campos...');
+        
+        const requiredFields = [
+            'billing-name',
+            'billing-email', 
+            'billing-address',
+            'billing-postal-code',
+            'billing-city',
+            'billing-state',
+            'billing-tax-id'
+        ];
+        
+        let allValid = true;
+        const errors = [];
+        
+        requiredFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            const value = field ? field.value.trim() : '';
+            
+            if (!value) {
+                if (field) field.style.borderColor = '#dc3545';
+                allValid = false;
+                errors.push(`${fieldId.replace('billing-', '').replace('-', ' ')} é obrigatório`);
+            } else {
+                if (field) field.style.borderColor = '#28a745';
+            }
         });
+        
+        // Validação de email
+        const email = document.getElementById('billing-email').value;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (email && !emailRegex.test(email)) {
+            document.getElementById('billing-email').style.borderColor = '#dc3545';
+            allValid = false;
+            errors.push('Email inválido');
+        }
+        
+        // Validação de CEP
+        const cep = document.getElementById('billing-postal-code').value.replace(/\D/g, '');
+        if (cep && cep.length !== 8) {
+            document.getElementById('billing-postal-code').style.borderColor = '#dc3545';
+            allValid = false;
+            errors.push('CEP deve ter 8 dígitos');
+        }
+        
+        // Validação de CPF/CNPJ
+        const taxId = document.getElementById('billing-tax-id').value.replace(/\D/g, '');
+        if (taxId && taxId.length !== 11 && taxId.length !== 14) {
+            document.getElementById('billing-tax-id').style.borderColor = '#dc3545';
+            allValid = false;
+            errors.push('CPF deve ter 11 dígitos ou CNPJ deve ter 14 dígitos');
+        }
+        
+        console.log(`Validação: ${allValid ? 'PASSOU' : 'FALHOU'}`, errors);
+        
+        if (!allValid) {
+            showMessage('Preencha todos os campos obrigatórios: ' + errors.join(', '), 'error');
+        }
+        
+        return allValid;
     }
 
-    // Handle form submission
+    // Handle form submission - VERSÃO CORRIGIDA PARA BOLETO
     form.addEventListener('submit', async (event) => {
+        console.log('=== FORMULÁRIO ENVIADO ===');
         event.preventDefault();
+        
+        const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+        console.log('Método selecionado:', paymentMethod);
+        
+        // Validar campos
+        if (!validateFields()) {
+            console.log('Validação falhou');
+            return;
+        }
+        
         setLoading(true);
 
-        const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
-
         try {
-            // Create payment intent
+            console.log('Enviando para o backend...');
+            
             const response = await fetch('', {
                 method: 'POST',
                 headers: {
@@ -367,6 +543,7 @@
             });
 
             const data = await response.json();
+            console.log('Resposta do backend:', data);
 
             if (data.error) {
                 showMessage(data.error, 'error');
@@ -374,22 +551,21 @@
                 return;
             }
 
-            // Handle different payment methods
+            const billingDetails = {
+                name: document.getElementById('billing-name').value,
+                email: document.getElementById('billing-email').value,
+                address: {
+                    line1: document.getElementById('billing-address').value,
+                    city: document.getElementById('billing-city').value,
+                    state: document.getElementById('billing-state').value,
+                    postal_code: document.getElementById('billing-postal-code').value.replace(/\D/g, ''),
+                    country: 'BR'
+                }
+            };
+
             let result;
             if (paymentMethod === 'card') {
-                // Coletar dados de endereço para cartão
-                const billingDetails = {
-                    name: document.getElementById('billing-name').value,
-                    email: document.getElementById('billing-email').value,
-                    address: {
-                        line1: document.getElementById('billing-address').value,
-                        city: document.getElementById('billing-city').value,
-                        state: document.getElementById('billing-state').value,
-                        postal_code: document.getElementById('billing-postal-code').value.replace(/\D/g, ''),
-                        country: 'BR'
-                    }
-                };
-
+                console.log('Processando cartão...');
                 result = await stripe.confirmCardPayment(data.client_secret, {
                     payment_method: {
                         card: cardElement,
@@ -397,11 +573,10 @@
                     }
                 });
             } else if (paymentMethod === 'pix') {
-                // Show PIX processing status
+                console.log('Processando PIX...');
                 form.style.display = 'none';
                 pixStatus.style.display = 'block';
                 
-                // Simulate PIX processing with progress bar
                 let progress = 0;
                 const progressBar = document.getElementById('progress-bar');
                 const progressInterval = setInterval(() => {
@@ -415,26 +590,78 @@
                 result = await stripe.confirmPixPayment(data.client_secret, {
                     return_url: window.location.origin + '{% url "payments:payment_success" 0 %}'.replace('0', data.payment_id)
                 });
+            } else if (paymentMethod === 'boleto') {
+                console.log('=== PROCESSANDO BOLETO ===');
+                
+                // Obter CPF/CNPJ do formulário
+                const taxId = document.getElementById('billing-tax-id').value.replace(/\D/g, '');
+                console.log('Tax ID extraído:', taxId);
+                
+                if (!taxId || (taxId.length !== 11 && taxId.length !== 14)) {
+                    throw new Error('CPF deve ter 11 dígitos ou CNPJ deve ter 14 dígitos');
+                }
+                
+                console.log('Criando payment method para boleto...');
+                const paymentMethodResult = await stripe.createPaymentMethod({
+                    type: 'boleto',
+                    boleto: {
+                        tax_id: taxId
+                    },
+                    billing_details: billingDetails
+                });
+
+                console.log('Payment method criado:', paymentMethodResult);
+
+                if (paymentMethodResult.error) {
+                    console.error('Erro ao criar payment method:', paymentMethodResult.error);
+                    throw new Error('Erro ao criar payment method: ' + paymentMethodResult.error.message);
+                }
+
+                console.log('Confirmando pagamento...');
+                result = await stripe.confirmPayment({
+                    clientSecret: data.client_secret,
+                    confirmParams: {
+                        payment_method: paymentMethodResult.paymentMethod.id,
+                        return_url: window.location.origin + '{% url "payments:payment_success" 0 %}'.replace('0', data.payment_id)
+                    }
+                });
+
+                console.log('Resultado do boleto:', result);
             }
 
+            console.log('Resultado final:', result);
+
             if (result.error) {
+                console.log('Erro no resultado:', result.error);
                 showMessage(result.error.message, 'error');
                 setLoading(false);
                 form.style.display = 'block';
                 pixStatus.style.display = 'none';
             } else {
-                // Success - redirect to success page
-                if (paymentMethod === 'pix' && result.paymentIntent.status === 'requires_action') {
-                    // For PIX, this is expected - the user will be redirected
-                    window.location.href = '{% url "payments:payment_success" 0 %}'.replace('0', data.payment_id);
-                } else if (result.paymentIntent.status === 'succeeded') {
-                    window.location.href = '{% url "payments:payment_success" 0 %}'.replace('0', data.payment_id);
+                console.log('Sucesso!');
+                // Sucesso - redirecionar
+                if (result.paymentIntent) {
+                    const status = result.paymentIntent.status;
+                    console.log('Status do payment intent:', status);
+                    if (status === 'succeeded' || status === 'requires_action' || status === 'processing') {
+                        console.log('Redirecionando para página de sucesso...');
+                        window.location.href = '{% url "payments:payment_success" 0 %}'.replace('0', data.payment_id);
+                    } else {
+                        console.log('Status inesperado:', status);
+                        showMessage('Status de pagamento inesperado: ' + status, 'error');
+                        setLoading(false);
+                    }
+                } else {
+                    // Redirect automático para PIX/Boleto
+                    console.log('Redirecionamento automático (sem paymentIntent)');
+                    // O Stripe deve ter redirecionado automaticamente
                 }
             }
 
         } catch (error) {
-            console.error('Payment error:', error);
-            showMessage('Erro inesperado. Tente novamente.', 'error');
+            console.error('Erro geral capturado:', error);
+            console.error('Stack trace:', error.stack);
+            showMessage('Erro: ' + error.message, 'error');
             setLoading(false);
             form.style.display = 'block';
             pixStatus.style.display = 'none';
@@ -442,6 +669,7 @@
     });
 
     function setLoading(loading) {
+        console.log('setLoading:', loading);
         submitButton.disabled = loading;
         if (loading) {
             buttonText.style.display = 'none';
@@ -453,14 +681,16 @@
     }
 
     function showMessage(message, type = 'error') {
+        console.log('showMessage:', message, type);
         paymentMessage.textContent = message;
         paymentMessage.className = type === 'error' ? 'alert alert-error' : 'alert alert-success';
         paymentMessage.style.display = 'block';
         
-        // Auto-hide after 5 seconds
         setTimeout(() => {
             paymentMessage.style.display = 'none';
-        }, 5000);
+        }, 10000);
     }
+
+    console.log('=== SCRIPT FINALIZADO ===');
 </script>
 {% endblock %}
