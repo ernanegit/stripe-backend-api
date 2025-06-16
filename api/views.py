@@ -1,4 +1,3 @@
-
 from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -224,7 +223,8 @@ def stripe_config(request):
 def health_check(request):
     """Health check para Railway"""
     return Response({'status': 'healthy'})
-# Create your views here.
+
+# NOVO: Endpoint para criar produtos de exemplo
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def create_sample_products(request):

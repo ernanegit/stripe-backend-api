@@ -18,12 +18,10 @@ urlpatterns = [
     # Products
     path('products/', views.ProductListView.as_view(), name='product_list'),
     path('products/<int:pk>/', views.ProductDetailView.as_view(), name='product_detail'),
+    path('products/create-samples/', views.create_sample_products, name='create_sample_products'),  # NOVA LINHA
     
     # Payments
     path('payments/', views.PaymentListView.as_view(), name='payment_list'),
     path('payments/<int:pk>/', views.PaymentDetailView.as_view(), name='payment_detail'),
     path('payments/create-intent/', views.create_payment_intent, name='create_payment_intent'),
-
-
-    path('products/create-samples/', views.create_sample_products, name='create_sample_products'),
 ]
